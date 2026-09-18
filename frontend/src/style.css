@@ -9,3 +9,11 @@
 
 /* Inline citation to source-card linkage */
 .source{scroll-margin-block:24px;transition:border-color .2s,background .2s,box-shadow .2s,transform .2s}.source>b{display:flex;align-items:flex-start;gap:9px}.source-number{width:24px;height:24px;flex:none;border:1px solid #7656ad;border-radius:50%;display:inline-grid;place-items:center;background:#292044;color:#d9c6ff;font-size:11px;line-height:1}.source.citation-active{border-color:#b27aff;background:#272044;box-shadow:0 0 0 2px #9456ef55,0 12px 30px #05061077;transform:translateY(-2px)}.source.citation-active .source-number{border-color:#d7baff;background:#7540dc;color:#fff}@media(prefers-reduced-motion:reduce){.source{transition:none}.source.citation-active{transform:none}}
+
+/* Show that history can expand and collapse. */
+.history-toggle{display:flex;align-items:center;justify-content:space-between;gap:6px;font-family:inherit}
+.history-toggle>span{white-space:nowrap}
+.history-chevron{flex:none;transition:transform .18s ease}
+.history-toggle[aria-expanded=true] .history-chevron{transform:rotate(180deg);color:#c59eff}
+.history-toggle:focus-visible{outline:2px solid #a87aff;outline-offset:-3px}
+@media(prefers-reduced-motion:reduce){.history-chevron{transition:none}}

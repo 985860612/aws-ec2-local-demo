@@ -85,6 +85,24 @@ function App() {
   const sidRef = useRef(sid);
   const settingsRef = useRef(settings);
   const chatEndRef = useRef(null);
+  const historyToggleRef = useRef(null);
+  const historyPanelRef = useRef(null);
+
+  useEffect(() => {
+    if (!showHistory) return;
+
+    const closeHistoryOnOutsideClick = (event) => {
+      if (
+        !historyToggleRef.current?.contains(event.target) &&
+        !historyPanelRef.current?.contains(event.target)
+      ) {
+        setShowHistory(false);
+      }
+    };
+
+    document.addEventListener('click', closeHistoryOnOutsideClick, true);
+    return () => document.removeEventListener('click', closeHistoryOnOutsideClick, true);
+  }, [showHistory]);
 
   useEffect(() => {
     sidRef.current = sid;
@@ -357,11 +375,22 @@ function App() {
         <div className="tag">Think AI-DLC. Build with Kiro.</div>
         <button className={`nav ${page === 'chat' ? 'active' : ''}`} onClick={() => navigatePage('chat')}>▣　对话</button>
         <button className={`nav ${page === 'knowledge' ? 'active' : ''}`} onClick={() => navigatePage('knowledge')}>♧　知识库</button>
-        <div className="nav" onClick={() => setShowHistory(!showHistory)}>
-          ◷　历史记录
-        </div>
+        <button
+          ref={historyToggleRef}
+          type="button"
+          className="nav history-toggle"
+          aria-expanded={showHistory}
+          aria-controls="history-panel"
+          title={showHistory ? '收起历史记录' : '展开历史记录'}
+          onClick={() => setShowHistory((shown) => !shown)}
+        >
+          <span>◷　历史记录</span>
+          <svg className="history-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
         {showHistory && (
-          <div className="history">
+          <div ref={historyPanelRef} id="history-panel" className="history">
             {history.length ? (
               history.map((item) => (
                 <div
