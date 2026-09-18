@@ -1,0 +1,27 @@
+[
+  {
+    "id": 0,
+    "title": "ec2-basics",
+    "text": "EC2 实例是 AWS 云中的虚拟服务器。启动实例时需要选择 AMI、实例类型、密钥对和网络配置。实例类型决定计算、内存、存储和网络性能。"
+  },
+  {
+    "id": 1,
+    "title": "security-group",
+    "text": "Security Group 是实例级别的虚拟防火墙，控制进出实例的流量。它是有状态的，只需要允许请求方向的流量，返回流量会自动允许。"
+  },
+  {
+    "id": 2,
+    "title": "network-acl",
+    "text": "Network ACL 是子网级别的防火墙，控制进出子网的流量。它是无状态的，入站和出站规则需要分别配置。规则按编号从小到大匹配。"
+  },
+  {
+    "id": 3,
+    "title": "ebs",
+    "text": "Amazon EBS 为 EC2 提供持久化块存储。gp3 是通用型 SSD，适合大多数工作负载；io2 适合需要更高 IOPS 和更高持久性的关键业务。"
+  },
+  {
+    "id": 4,
+    "title": "ssh-troubleshooting",
+    "text": "EC2 无法通过 SSH 连接时，应检查实例运行状态、系统状态检查、公网 IP、路由表、Internet Gateway、Security Group 的 22 端口和操作系统中的 sshd 服务。"
+  }
+]

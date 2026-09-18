@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+    <html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>什么是 Amazon EC2？ - Amazon Elastic Compute Cloud</title><meta name="viewport" content="width=device-width,initial-scale=1" /><meta name="assets_root" content="/assets" /><meta name="target_state" content="concepts" /><meta name="default_state" content="concepts" /><link rel="icon" type="image/ico" href="/assets/images/favicon.ico" /><link rel="shortcut icon" type="image/ico" href="/assets/images/favicon.ico" /><link rel="canonical" href="https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/concepts.html" /><meta name="description" content="将 Amazon EC2 用于AWS云中可扩展的计算容量，以便在没有硬件限制的情况下开发和部署应用程序。" /><meta name="deployment_region" content="IAD" /><meta name="product" content="Amazon Elastic Compute Cloud" /><meta name="guide" content="用户指南" /><meta name="abstract" content="使用 Amazon EC2 在 AWS 云中配置、启动和管理虚拟服务器。" /><meta name="guide-locale" content="zh_cn" /><meta name="tocs" content="toc-contents.json" /><link rel="canonical" href="https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/concepts.html" /><link rel="alternate" href="https://docs.aws.amazon.com/id_id/AWSEC2/latest/UserGuide/concepts.html" hreflang="id-id" /><link rel="alternate" href="https://docs.aws.amazon.com/id_id/AWSEC2/latest/UserGuide/concepts.html" hreflang="id" /><link rel="alternate" href="https://docs.aws.amazon.com/de_de/AWSEC2/latest/UserGuide/concepts.html" hreflang="de-de" /><link rel="alternate" href="https://docs.aws.amazon.com/de_de/AWSEC2/latest/UserGuide/concepts.html" hreflang="de" /><link rel="alternate" href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html" hreflang="en-us" /><link rel="alternate" href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html" hreflang="en" /><link rel="alternate" href="https://docs.aws.amazon.com/es_es/AWSEC2/latest/UserGuide/concepts.html" hreflang="es-es" /><link rel="alternate" href="https://docs.aws.amazon.com/es_es/AWSEC2/latest/UserGuide/concepts.html" hreflang="es" /><link rel="alternate" href="https://docs.aws.amazon.com/fr_fr/AWSEC2/latest/UserGuide/concepts.html" hreflang="fr-fr" /><link rel="alternate" href="https://docs.aws.amazon.com/fr_fr/AWSEC2/latest/UserGuide/concepts.html" hreflang="fr" /><link rel="alternate" href="https://docs.aws.amazon.com/it_it/AWSEC2/latest/UserGuide/concepts.html" hreflang="it-it" /><link rel="alternate" href="https://docs.aws.amazon.com/it_it/AWSEC2/latest/UserGuide/concepts.html" hreflang="it" /><link rel="alternate" href="https://docs.aws.amazon.com/ja_jp/AWSEC2/latest/UserGuide/concepts.html" hreflang="ja-jp" /><link rel="alternate" href="https://docs.aws.amazon.com/ja_jp/AWSEC2/latest/UserGuide/concepts.html" hreflang="ja" /><link rel="alternate" href="https://docs.aws.amazon.com/ko_kr/AWSEC2/latest/UserGuide/concepts.html" hreflang="ko-kr" /><link rel="alternate" href="https://docs.aws.amazon.com/ko_kr/AWSEC2/latest/UserGuide/concepts.html" hreflang="ko" /><link rel="alternate" href="https://docs.aws.amazon.com/pt_br/AWSEC2/latest/UserGuide/concepts.html" hreflang="pt-br" /><link rel="alternate" href="https://docs.aws.amazon.com/pt_br/AWSEC2/latest/UserGuide/concepts.html" hreflang="pt" /><link rel="alternate" href="https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/concepts.html" hreflang="zh-cn" /><link rel="alternate" href="https://docs.aws.amazon.com/zh_tw/AWSEC2/latest/UserGuide/concepts.html" hreflang="zh-tw" /><link rel="alternate" href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html" hreflang="x-default" /><meta name="feedback-item" content="EC2" /><meta name="this_doc_product" content="Amazon Elastic Compute Cloud" /><meta name="this_doc_guide" content="用户指南" /><head xmlns="http://www.w3.org/1999/xhtml"> <script defer="" src="/assets/r/awsdocs-doc-page.2.0.0.js"></script><link href="/assets/r/awsdocs-doc-page.2.0.0.css" rel="stylesheet"/></head>
+<script defer="" id="awsc-panorama-bundle" type="text/javascript" src="https://prod.pa.cdn.uis.awsstatic.com/panorama-nav-init.js" data-config="{'appEntity':'aws-documentation','region':'us-east-1','service':'ec2'}"></script><meta id="panorama-serviceSubSection" value="用户指南" /><meta id="panorama-serviceConsolePage" value="什么是 Amazon EC2？" /></head><body class="awsdocs awsui"><div class="awsdocs-container"><p><a href="concepts.md">View a markdown version of this page</a></p><awsdocs-header></awsdocs-header><awsui-app-layout id="app-layout" class="awsui-util-no-gutters" ng-controller="ContentController as $ctrl" header-selector="awsdocs-header" navigation-hide="false" navigation-width="$ctrl.navWidth" navigation-open="$ctrl.navOpen" navigation-change="$ctrl.onNavChange($event)" tools-hide="$ctrl.hideTools" tools-width="$ctrl.toolsWidth" tools-open="$ctrl.toolsOpen" tools-change="$ctrl.onToolsChange($event)"><div id="guide-toc" dom-region="navigation"><awsdocs-toc></awsdocs-toc></div><div id="main-column" dom-region="content" tabindex="-1"><awsdocs-view class="awsdocs-view"><div id="awsdocs-content"><head><title>什么是 Amazon EC2？ - Amazon Elastic Compute Cloud</title><meta name="pdf" content="ec2-ug.pdf#concepts" /><meta name="rss" content="amazon-ec2-release-notes.rss" /><meta name="forums" content="https://repost.aws/zh-Hans/tags/TAO-wqN9fYRoyrpdULLa5y7g" /><meta name="feedback" content="https://docs.aws.amazon.com/forms/aws-doc-feedback?hidden_service_name=EC2&amp;topic_url=https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/concepts.html" /><meta name="feedback-yes" content="feedbackyes.html?topic_url=https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/concepts.html" /><meta name="feedback-no" content="feedbackno.html?topic_url=https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/concepts.html" /><meta name="keywords" content="EC2,Amazon EC2,EC2 实例,EC2 Linux 实例,EC2 Windows 实例,实例,VM,虚拟机,EC2 概览" /><link rel="alternate" type="text/markdown" href="concepts.md" title="Markdown version" /><script type="application/ld+json">
+{
+    "@context" : "https://schema.org",
+    "@type" : "BreadcrumbList",
+    "itemListElement" : [
+      {
+        "@type" : "ListItem",
+        "position" : 1,
+        "name" : "AWS",
+        "item" : "https://aws.amazon.com"
+      },
+      {
+        "@type" : "ListItem",
+        "position" : 2,
+        "name" : "Amazon EC2",
+        "item" : "https://docs.aws.amazon.com/ec2/index.html"
+      },
+      {
+        "@type" : "ListItem",
+        "position" : 3,
+        "name" : "用户指南",
+        "item" : "https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide"
+      },
+      {
+        "@type" : "ListItem",
+        "position" : 4,
+        "name" : "什么是 Amazon EC2？",
+        "item" : "https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/concepts.html"
+      }
+    ]
+}
+</script></head><body><div id="main"><div style="display: none"><a href="ec2-ug.pdf#concepts" target="_blank" rel="noopener noreferrer" title="打开 PDF"></a></div><div id="breadcrumbs" class="breadcrumb"><a href="/index.html">文档</a><a href="/ec2/index.html">Amazon EC2</a><a href="concepts.html">用户指南</a></div><div id="page-toc-src"><a href="#ec2-features">功能</a><a href="#related-services">相关服务</a><a href="#access-ec2">访问 EC2</a><a href="#ec2-pricing">定价</a><a href="#more-resources">资源</a></div><awsdocs-doc-page-banner></awsdocs-doc-page-banner><div id="main-content" class="awsui-util-container"><div id="main-col-body"><awsdocs-language-banner data-service="$ctrl.pageService"></awsdocs-language-banner><h1 class="topictitle" id="concepts">什么是 Amazon EC2？</h1><div class="awsdocs-page-header-container"><awsdocs-page-header></awsdocs-page-header><awsdocs-filter-selector id="awsdocs-filter-selector"></awsdocs-filter-selector></div><p>Amazon Elastic Compute Cloud（Amazon EC2）在 Amazon Web Services（AWS）云中按需提供可扩展的计算容量。使用 Amazon EC2 可以降低硬件成本，因此您可以更快地开发和部署应用程序。您可以使用 Amazon EC2 启动所需数量的虚拟服务器，配置安全性和联网以及管理存储。您可以添加容量（纵向扩展）来处理计算密集型任务，例如月度或年度进程或网站流量峰值。如果使用量减少，您可以再次减少容量（缩减）。</p><p>EC2 实例是 AWS 云中的虚拟服务器。启动 EC2 实例时，您指定的实例类型决定了用于您的实例的主机硬件。每种实例类型以不同方式兼顾计算、内存、存储和网络资源。有关更多信息，请参阅 <a href="https://docs.aws.amazon.com/ec2/latest/instancetypes/instance-types.html">Amazon EC2 实例类型指南</a>。</p><div class="mediaobject">
+		 
+			<img src="images/instance-types.png" class="aws-docs-img-whiteBg aws-docs-img-padding" alt="每种 EC2 实例类型兼顾了计算、内存、存储和网络资源。" style="max-width:100%" />
+		 
+		 
+	</div>
+		<h2 id="ec2-features">Amazon EC2 的功能</h2>
+
+		<p>Amazon EC2 提供以下高级功能：</p>
+
+		<div class="variablelist">
+			 
+			 
+			 
+			 
+			 
+			 
+			 
+		<dl>
+				<dt><b><span class="term">实例</span></b></dt>
+				<dd>
+					<p>虚拟服务器。</p>
+				</dd>
+			
+				<dt><b><span class="term">亚马逊机器映像（AMI）</span></b></dt>
+				<dd>
+					<p>实例的预置模板，其中包含服务器所需的组件（包括操作系统和其他软件）。</p>
+				</dd>
+			
+				<dt><b><span class="term">实例类型</span></b></dt>
+				<dd>
+					<p>实例 CPU、内存、存储、网络容量和图形硬件的多种配置。</p>
+				</dd>
+			
+				<dt><b><span class="term">Amazon EBS 卷</span></b></dt>
+				<dd>
+					<p>使用 Amazon Elastic Block Store（Amazon EBS）的数据的持久性存储卷。</p>
+				</dd>
+			
+				<dt><b><span class="term">实例存储卷</span></b></dt>
+				<dd>
+					<p>停止、休眠或终止实例时会删除的临时数据的存储卷。</p>
+				</dd>
+			
+				<dt><b><span class="term">密钥对</span></b></dt>
+				<dd>
+					<p>实例的安全登录信息。AWS 会存储公有密钥，而您可以在安全位置存储私有密钥。</p>
+				</dd>
+			
+				<dt><b><span class="term">安全组</span></b></dt>
+				<dd>
+					<p>虚拟防火墙，允许您指定可以访问实例的协议、端口和源 IP 范围，以及实例可以连接的目标 IP 范围。</p>
+				</dd>
+			</dl></div>
+
+        
+<p>Amazon EC2 支持由商家或服务提供商处理、存储和传输信用卡数据，而且已经验证符合支付卡行业 (PCI) 数据安全标准 (DSS)。有关 PCI DSS 的更多信息，包括如何请求 AWS PCI Compliance Package 的副本，请参阅 <a href="https://aws.amazon.com/compliance/pci-dss-level-1-faqs/" rel="noopener noreferrer" target="_blank"><span>PCI DSS 第 1 级</span><awsui-icon class="awsdocs-link-icon" name="external"></awsui-icon></a>。</p>
+
+	 
+		<h2 id="related-services">相关服务</h2>
+
+		<div class="variablelist">
+			<h6>与 Amazon EC2 结合使用的服务</h6>
+			<p>可以将其他 AWS 服务 与使用 Amazon EC2 部署的实例一起使用。</p>
+        	 
+			 
+			 
+			 
+			 
+			 
+			 
+			 
+        <dl>
+        		<dt><span class="term"><a href="https://docs.aws.amazon.com/autoscaling/">Amazon EC2 Auto Scaling</a></span></dt>
+        		<dd>
+        			<p>帮助确保您具有正确数量的 Amazon EC2 实例，可用于处理您的应用程序负载。</p>
+        		</dd>
+        	 
+				<dt><span class="term"><a href="https://docs.aws.amazon.com/aws-backup/">AWS Backup</a></span></dt>
+				<dd>
+					<p>自动备份 Amazon EC2 实例及其附加的 Amazon EBS 卷。</p>
+				</dd>
+			 
+				<dt><span class="term"><a href="https://docs.aws.amazon.com/cloudwatch/">Amazon CloudWatch</a></span></dt>
+				<dd>
+					<p>监控实例和 Amazon EBS 卷。</p>
+				</dd>
+			 
+				<dt><span class="term"><a href="https://docs.aws.amazon.com/elasticloadbalancing/">Elastic Load Balancing</a></span></dt>
+				<dd>
+					<p>可在多个实例间自动分配传入的应用程序流量。</p>
+				</dd>
+			 
+				<dt><span class="term"><a href="https://docs.aws.amazon.com/guardduty/">Amazon GuardDuty</a></span></dt>
+				<dd>
+					<p>检测对 EC2 实例的潜在未经授权或恶意的使用情况。</p>
+				</dd>
+			 
+				<dt><span class="term"><a href="https://docs.aws.amazon.com/imagebuilder/">EC2 Image Builder</a></span></dt>
+				<dd>
+					<p>自动创建、管理和部署自定义、安全且最新的服务器映像。</p>
+				</dd>
+			 
+				<dt><span class="term"><a href="https://docs.aws.amazon.com/launchwizard/">AWS Launch Wizard</a></span></dt>
+				<dd>
+					<p>调整、配置和部署用于第三方应用程序的 AWS 资源，而无需手动识别和预置单个 AWS 资源。</p>
+				</dd>
+			 
+				<dt><span class="term"><a href="https://docs.aws.amazon.com/systems-manager/">AWS Systems Manager</a></span></dt>
+				<dd>
+					<p>使用该安全的端到端管理解决方案在 EC2 实例上大规模执行操作。</p>
+				</dd>
+			</dl></div>
+		
+		<div class="variablelist">
+			<h6>其他计算服务</h6>
+			<p>可以使用其他 AWS 计算服务而不是使用 Amazon EC2 来启动实例。</p>
+			 
+			 
+			 
+		<dl>
+				<dt><span class="term"><a href="https://docs.aws.amazon.com/lightsail/">Amazon Lightsail</a></span></dt>
+				<dd>
+					<p>使用 Amazon Lightsail 构建网站或 Web 应用程序，这是一个云平台，提供快速部署项目所需的资源，每月价格低廉、可预测。要比较 Amazon EC2 和 Lightsail，请参阅 <a href="https://docs.aws.amazon.com/decision-guides/latest/lightsail-or-ec2/lightsail-or-ec2.html">Amazon Lightsail 或 Amazon EC2</a>。</p>
+				</dd>
+			 
+				<dt><span class="term"><a href="https://docs.aws.amazon.com/ecs/">Amazon Elastic Container Service（Amazon ECS）</a></span></dt>
+				<dd>
+					<p>在 EC2 实例集群上部署、管理和扩展容器化应用程序。有关更多信息，请参阅<a href="https://docs.aws.amazon.com/decision-guides/latest/containers-on-aws-how-to-choose/choosing-aws-container-service.html">选择 AWS 容器服务</a>。</p>
+				</dd>
+			 
+				<dt><span class="term"><a href="https://docs.aws.amazon.com/eks/">Amazon Elastic Kubernetes Service(Amazon EKS)</a></span></dt>
+				<dd>
+					<p>在 AWS 上运行您的 Kubernetes 应用程序。有关更多信息，请参阅<a href="https://docs.aws.amazon.com/decision-guides/latest/containers-on-aws-how-to-choose/choosing-aws-container-service.html">选择 AWS 容器服务</a>。</p>
+				</dd>
+			</dl></div>
+	 
+		<h2 id="access-ec2">访问 Amazon EC2</h2>
+		<p>您可以使用以下界面创建和管理 Amazon EC2 实例：</p>
+
+		<div class="variablelist">
+			 
+			 
+			 
+			 
+			 
+			 
+		<dl>
+				<dt><b><span class="term">Amazon EC2 控制台</span></b></dt>
+				<dd>
+					<p>用于创建和管理 Amazon EC2 实例和资源的简单 Web 界面。如果您已注册AWS账户，可以通过登录 AWS 管理控制台 并从控制台主页选择 <b>EC2</b> 来访问 Amazon EC2 控制台。</p>
+				</dd>
+			
+				<dt><b><span class="term">AWS Command Line Interface</span></b></dt>
+				<dd>
+					<p>让您能够在命令行 Shell 中使用命令与 AWS 服务进行交互。它在 Windows、Mac 和 Linux 上受支持。有关 AWS CLI 的更多信息，请参阅 <a href="https://docs.aws.amazon.com/cli/latest/userguide/">AWS Command Line Interface 用户指南</a>。您可以在 <a href="https://docs.aws.amazon.com/cli/latest/reference/ec2/index.html">AWS CLI 命令参考</a>中查看 Amazon EC2 命令。</p>
+				</dd>
+			
+				<dt><b><span class="term">CloudFormation</span></b></dt>
+				<dd>
+					<p>Amazon EC2 支持使用 CloudFormation 创建资源。您可以创建一个用于描述 AWS 资源的模板（采用 JSON 或 YAML 格式），然后 CloudFormation 会为您预置和配置这些资源。您可以重复使用 CloudFormation 模板来多次预置相同的资源，无论是在同一地区和账户中，还是在多个地区和账户中。有关 Amazon EC2 的受支持资源类型和属性的更多信息，请参阅《AWS CloudFormation 用户指南》<em></em>中的 <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/AWS_EC2.html">EC2 资源类型参考</a>。</p>
+				</dd>
+			
+				<dt><b><span class="term">AWS SDK</span></b></dt>
+				<dd>
+					<p>如果您倾向于使用特定语言的 API 而非通过 HTTP 或 HTTPS 提交请求来构建应用程序，AWS 为软件开发人员提供了库文件、示例代码、教程和其他资源。这些库文件提供可自动执行任务的基本功能，例如以加密方式对请求签名、重试请求和处理错误响应，以便您可以更轻松地上手。有关更多信息，请参阅 <span><a href="https://aws.amazon.com/developer/tools/" rel="noopener noreferrer" target="_blank"><span>用于在 AWS 上构建的工具</span><awsui-icon class="awsdocs-link-icon" name="external"></awsui-icon></a></span>。</p>
+				</dd>
+			
+				<dt><b><span class="term">AWS Tools for PowerShell</span></b></dt>
+				<dd>
+					<p>一组根据 适用于 .NET 的 SDK 公开的功能构建的 PowerShell 模块。借助 Tools for PowerShell，您可以从 PowerShell 命令行为针对 AWS 资源的操作编写脚本。要开始使用，请参阅<a href="https://docs.aws.amazon.com/powershell/latest/userguide/">《AWS Tools for PowerShell 用户指南》</a>。您可以在 <a href="https://docs.aws.amazon.com/powershell/latest/reference/Index.html">AWS Tools for PowerShell Cmdlet 参考</a>中找到适用于 Amazon EC2 的 cmdlets。</p>
+				</dd>
+			
+				<dt><b><span class="term">查询 API</span></b></dt>
+				<dd>
+					<p>Amazon EC2 提供查询 API。这些请求属于 HTTP 或 HTTPS 请求，需要使用 HTTP 动词 GET 或 POST 以及一个名为 <code class="code">Action</code> 的查询参数。有关 Amazon EC2 的 API 操作的更多信息，请参阅<em></em>《Amazon EC2 API 参考》中的<a href="https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_Operations.html">操作</a>。</p>
+				</dd>
+			</dl></div>
+	 
+		<h2 id="ec2-pricing">Amazon EC2 定价</h2>
+		<p>Amazon EC2 提供以下定价选项：</p>
+		<div class="variablelist">
+			 
+			 
+			 
+			 
+			 
+			 
+			 
+			 
+		<dl>
+				<dt><b><span class="term">免费套餐</span></b></dt>
+				<dd>
+					<p>您可以免费开始使用 Amazon EC2。要了解免费套餐选项，请参阅 <a href="https://aws.amazon.com/free/" rel="noopener noreferrer" target="_blank"><span>AWS Free Tier</span><awsui-icon class="awsdocs-link-icon" name="external"></awsui-icon></a>。</p>
+				</dd>
+			
+				<dt><b><span class="term">按需型实例</span></b></dt>
+				<dd>
+					<p>您只需按秒支付使用实例的费用（最少 60 秒），无需长期订阅或支付预付款。</p>
+				</dd>
+			
+				<dt><b><span class="term">节省计划</span></b></dt>
+				<dd>
+					<p>可以通过承诺在 1 年或 3 年期限内保持一致的使用量（以美元/小时为单位）来降低您的 Amazon EC2 成本。</p>
+				</dd>
+			
+				<dt><b><span class="term">预留实例</span></b></dt>
+				<dd>
+					<p>可以通过承诺在 1 年或 3 年期限内提供特定的实例配置（包括实例类型和区域）来降低您的 Amazon EC2 成本。</p>
+				</dd>
+			
+				<dt><b><span class="term">竞价型实例</span></b></dt>
+				<dd>
+					<p>请求未使用的 EC2 实例，这可能会显著降低您的 Amazon EC2 成本。</p>
+				</dd>
+			
+				<dt><b><span class="term">专属主机</span></b></dt>
+				<dd>
+					<p>通过使用完全专供您使用的物理 EC2 服务器（按需付费或作为实惠配套的一部分）来降低成本。您可以使用现有的服务器绑定软件许可证，并获得满足合规性要求的帮助。</p>
+				</dd>
+			
+				<dt><b><span class="term">按需容量预留</span></b></dt>
+				<dd>
+					<p>在特定可用区中为 EC2 实例预留计算容量，持续时间不限。</p>
+				</dd>
+			
+				<dt><b><span class="term">按秒计费</span></b></dt>
+				<dd>
+					<p>从账单中扣除未使用的分钟数计费和秒数计费。</p>
+				</dd>
+			</dl></div>
+		<p>有关 Amazon EC2 的费用和价格的完整列表以及有关购买模式的更多信息，请参阅 <a href="https://aws.amazon.com/ec2/pricing/" rel="noopener noreferrer" target="_blank"><span>Amazon EC2 定价</span><awsui-icon class="awsdocs-link-icon" name="external"></awsui-icon></a>。</p>
+		 
+			<h3 id="ec2-pricing-additional">估算、账单和成本优化</h3>
+			<p>要为 AWS 用例创建估算，请使用 <a href="https://calculator.aws/#/" rel="noopener noreferrer" target="_blank"><span>AWS 定价计算器</span><awsui-icon class="awsdocs-link-icon" name="external"></awsui-icon></a>。</p>
+			<p>要估算将 <b>Microsoft 工作负载</b>转换为使用部署在 AWS 上的云原生开源服务的现代架构成本，请使用<a href="https://modernization.calculator.aws/microsoft/workload" rel="noopener noreferrer" target="_blank"><span>适用于 Microsoft 工作负载的 AWS 现代化计算器</span><awsui-icon class="awsdocs-link-icon" name="external"></awsui-icon></a>。</p>
+			<p>若要查看您的账单，请转到 <a href="https://console.aws.amazon.com/billing/" rel="noopener noreferrer" target="_blank"><span>AWS 账单与成本管理 控制台</span><awsui-icon class="awsdocs-link-icon" name="external"></awsui-icon></a>中的<b>账单和成本管理控制面板</b>。您的账单中包含了提供您的账单详情的使用情况报告的链接。要了解有关 AWS 账户账单的更多信息，请参阅 <a href="https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/">AWS 账单和成本管理用户指南</a>。</p>
+			<p>如果您有关于 AWS 账单、账户和事件的问题，请<a href="https://aws.amazon.com/contact-us/" rel="noopener noreferrer" target="_blank"><span>联系 AWS Support</span><awsui-icon class="awsdocs-link-icon" name="external"></awsui-icon></a>。</p>
+			<p><span>要计算示例预置环境的成本，请参阅<a href="https://aws.amazon.com/economics/" rel="noopener noreferrer" target="_blank"><span>云成本中心</span><awsui-icon class="awsdocs-link-icon" name="external"></awsui-icon></a>。</span>在计算预配置环境的成本时，请记住包括附带成本，例如 EBS 卷的快照存储。</p>
+			<p>您可以使用 <a href="https://aws.amazon.com/premiumsupport/technology/trusted-advisor/" rel="noopener noreferrer" target="_blank"><span>AWS Trusted Advisor</span><awsui-icon class="awsdocs-link-icon" name="external"></awsui-icon></a> 来优化 AWS 环境的成本、安全性和性能。</p>
+			<p>您可以使用 AWS Cost Explorer 分析 EC2 实例的成本和使用情况。您最多可以查看过去 13 个月的数据，并预测您在接下来 12 个月内可能产生的费用。有关更多信息，请参阅《AWS Cost Management User Guide》<em></em>中的 <a href="https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html">Analyzing your costs and usage with AWS Cost Explorer</a>。</p>
+		 
+	 
+		<h2 id="more-resources">资源</h2>
+		<div class="itemizedlist">
+			 
+			 
+			 
+			 
+			 
+			 
+			 
+		<ul class="itemizedlist"><li class="listitem"><p><a href="https://aws.amazon.com/ec2/features/" rel="noopener noreferrer" target="_blank"><span>Amazon EC2 功能</span><awsui-icon class="awsdocs-link-icon" name="external"></awsui-icon></a></p></li><li class="listitem"><p><a href="https://repost.aws/" rel="noopener noreferrer" target="_blank"><span>AWS re:Post</span><awsui-icon class="awsdocs-link-icon" name="external"></awsui-icon></a></p></li><li class="listitem"><p><a href="https://aws.amazon.com/training/digital/" rel="noopener noreferrer" target="_blank"><span>AWS Skill Builder</span><awsui-icon class="awsdocs-link-icon" name="external"></awsui-icon></a></p></li><li class="listitem"><p><a href="https://aws.amazon.com/premiumsupport/" rel="noopener noreferrer" target="_blank"><span>AWS 支持</span><awsui-icon class="awsdocs-link-icon" name="external"></awsui-icon></a></p></li><li class="listitem"><p><a href="https://aws.amazon.com/getting-started/hands-on/" rel="noopener noreferrer" target="_blank"><span>动手实践教程</span><awsui-icon class="awsdocs-link-icon" name="external"></awsui-icon></a></p></li><li class="listitem"><p><a href="https://aws.amazon.com/websites/" rel="noopener noreferrer" target="_blank"><span>Web 托管</span><awsui-icon class="awsdocs-link-icon" name="external"></awsui-icon></a></p></li><li class="listitem"><p><a href="https://aws.amazon.com/windows/" rel="noopener noreferrer" target="_blank"><span>Windows on AWS</span><awsui-icon class="awsdocs-link-icon" name="external"></awsui-icon></a></p></li></ul></div>
+	<awsdocs-copyright class="copyright-print"></awsdocs-copyright><awsdocs-thumb-feedback right-edge="{{$ctrl.thumbFeedbackRightEdge}}"></awsdocs-thumb-feedback></div><noscript><div><div><div><div id="js_error_message"><p><img src="https://d1ge0kk1l5kms0.cloudfront.net/images/G/01/webservices/console/warning.png" alt="警告" /> <strong>Javascript 在您的浏览器中被禁用或不可用。</strong></p><p>要使用 Amazon Web Services 文档，必须启用 Javascript。请参阅浏览器的帮助页面以了解相关说明。</p></div></div></div></div></noscript><div id="main-col-footer" class="awsui-util-font-size-0"><div id="doc-conventions"><a target="_top" href="/general/latest/gr/docconventions.html">文档惯例</a></div><div class="prev-next"><div id="next" class="next-link" accesskey="n" href="./EC2_GetStarted.html">入门教程</div></div></div><awsdocs-page-utilities></awsdocs-page-utilities></div><div id="quick-feedback-yes" style="display: none;"><div class="title">此页面对您有帮助吗？- 是</div><div class="content"><p>感谢您对我们工作的肯定！</p><p>如果不耽误您的时间，请告诉我们做得好的地方，让我们做得更好。</p><p><awsui-button id="fblink" rel="noopener noreferrer" target="_blank" text="反馈" click="linkClick($event)" href="https://docs.aws.amazon.com/forms/aws-doc-feedback?hidden_service_name=EC2&amp;topic_url=https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/concepts.html"></awsui-button></p></div></div><div id="quick-feedback-no" style="display: none;"><div class="title">此页面对您有帮助吗？- 否</div><div class="content"><p>感谢您告诉我们本页内容还需要完善。很抱歉让您失望了。</p><p>如果不耽误您的时间，请告诉我们如何改进文档。</p><p><awsui-button id="fblink" rel="noopener noreferrer" target="_blank" text="反馈" click="linkClick($event)" href="https://docs.aws.amazon.com/forms/aws-doc-feedback?hidden_service_name=EC2&amp;topic_url=https://docs.aws.amazon.com/zh_cn/AWSEC2/latest/UserGuide/concepts.html"></awsui-button></p></div></div></div></body></div></awsdocs-view><div class="page-loading-indicator" id="page-loading-indicator"><awsui-spinner size="large"></awsui-spinner></div></div><div id="tools-panel" dom-region="tools"><awsdocs-tools-panel id="awsdocs-tools-panel"></awsdocs-tools-panel></div></awsui-app-layout><awsdocs-cookie-banner class="doc-cookie-banner"></awsdocs-cookie-banner></div></body></html>

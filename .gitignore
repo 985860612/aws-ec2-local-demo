@@ -4,9 +4,3 @@ __pycache__/
 
 # macOS
 .DS_Store
-
-# 运行时再生的数据（有脚本可重建，不入仓）
-data/qdrant/
-source_docs/
-index.npz
-metadata.json
