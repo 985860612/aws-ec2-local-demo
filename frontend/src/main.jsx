@@ -374,7 +374,7 @@ function App() {
                 </div>
               ))
             ) : (
-              <div className="history-item">暂无历史记录</div>
+              <div className="history-item empty">暂无历史记录</div>
             )}
           </div>
         )}
