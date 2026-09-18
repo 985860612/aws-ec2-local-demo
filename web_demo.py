@@ -16,6 +16,7 @@ from pydantic import BaseModel
 from qdrant_client import QdrantClient
 from strands import Agent, tool
 from strands.models.openai import OpenAIModel
+from dashscope_config import resolve_base_url
 
 ROOT = Path(__file__).parent
 KEY_FILE = Path(os.getenv('DASHSCOPE_CREDENTIAL_FILE', '/Users/wangxiaojie/Downloads/默认业务空间-apiKey-7312314.csv'))
@@ -28,7 +29,8 @@ def config():
         return {r[0].strip(): r[1].strip() for r in csv.reader(f) if len(r) >= 2}
 
 cfg = config()
-api = OpenAI(api_key=cfg['apiKey'], base_url=f"https://{cfg['apiHost'].rstrip('/')}/compatible-mode/v1")
+BASE_URL = resolve_base_url(cfg['apiHost'])
+api = OpenAI(api_key=cfg['apiKey'], base_url=BASE_URL)
 qdrant = QdrantClient(path=str(DB))
 sessions: dict[str, Agent] = {}
 lock = threading.Lock()
@@ -81,7 +83,7 @@ def search_aws_knowledge_base(query: str) -> str:
     ]}, ensure_ascii=False)
 
 def new_agent() -> Agent:
-    model = OpenAIModel(client_args={'api_key': cfg['apiKey'], 'base_url': f"https://{cfg['apiHost'].rstrip('/')}/compatible-mode/v1"}, model_id='qwen3.8-flash', params={'temperature': 0.2, 'max_tokens': 1800})
+    model = OpenAIModel(client_args={'api_key': cfg['apiKey'], 'base_url': BASE_URL}, model_id='qwen3.8-flash', params={'temperature': 0.2, 'max_tokens': 1800})
     return Agent(model=model, tools=[search_aws_knowledge_base], system_prompt='''
 你是 AWS 技术客服 Agent。每次回答 AWS 技术问题前，必须调用 search_aws_knowledge_base。
 只能依据工具返回的 AWS 官方资料回答，资料不足时明确说“知识库没有足够依据”，不能编造。
