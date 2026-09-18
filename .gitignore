@@ -8,3 +8,7 @@ __pycache__/
 # 前端依赖与构建产物（npm install / npm run build 可重建）
 node_modules/
 frontend/dist/
+
+# IDE 与工具运行产物
+.idea/
+.playwright-mcp/
