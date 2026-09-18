@@ -1,11 +1,16 @@
-import csv, json, threading, uuid
+import csv
+import json
+import re
+import threading
+import uuid
 from pathlib import Path
-from openai import OpenAI
-from qdrant_client import QdrantClient
+
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from openai import OpenAI
 from pydantic import BaseModel
+from qdrant_client import QdrantClient
 from strands import Agent, tool
 from strands.models.openai import OpenAIModel
 
@@ -52,8 +57,15 @@ class ChatRequest(BaseModel):
 app = FastAPI(title='AWS 客服 Agent')
 app.mount('/assets', StaticFiles(directory=str(ROOT / 'assets')), name='assets')
 HTML = (ROOT / 'index.html').read_text(encoding='utf-8')
-HTML = HTML.replace('<div class="ghost">👻</div>', '<img src="/assets/ai-dlc-mascot.png" alt="AI-DLC 先锋创造营">')
+HTML = re.sub(
+    r'<div class="mascot">.*?</div></aside>',
+    '<div class="mascot"><img src="/assets/ai-dlc-mascot.png" alt="AI-DLC 先锋创造营"><div class="brand-cn">AI-DLC 先锋创造营</div><div class="brand-en">Start Your Journey as a Pioneer</div></div></aside>',
+    HTML,
+    count=1,
+    flags=re.DOTALL,
+)
 HTML = HTML.replace('.ghost{font-size:90px;filter:drop-shadow(0 0 18px #7d43ff);margin-bottom:8px}', '.mascot img{display:block;width:205px;max-width:100%;height:auto;margin:0 auto;filter:drop-shadow(0 0 18px #7d43ff)}')
+HTML = HTML.replace('</style>', '.brand-cn{color:#a45cff;font-size:16px;font-weight:800;margin-top:4px}.brand-en{color:#aeb0c9;font-size:11px;margin-top:5px}</style>')
 
 @app.get('/', response_class=HTMLResponse)
 def home():
