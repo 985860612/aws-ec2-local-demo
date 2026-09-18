@@ -1,5 +1,6 @@
 import csv
 import json
+import os
 import re
 import threading
 import uuid
@@ -15,7 +16,7 @@ from strands import Agent, tool
 from strands.models.openai import OpenAIModel
 
 ROOT = Path(__file__).parent
-KEY_FILE = Path('/Users/wangxiaojie/Downloads/默认业务空间-apiKey-7312314.csv')
+KEY_FILE = Path(os.getenv('DASHSCOPE_CREDENTIAL_FILE', '/Users/wangxiaojie/Downloads/默认业务空间-apiKey-7312314.csv'))
 DB = ROOT / 'data/qdrant'
 COLLECTION = 'aws_ec2_zh_cn'
 
