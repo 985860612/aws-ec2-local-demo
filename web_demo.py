@@ -350,6 +350,17 @@ def chat(req: ChatRequest):
     with session.call_lock:
         session.reset_sources()
         save_message(session_id, 'user', req.message, req.message)
+        # Keep the specialist focused on AWS questions. This lightweight gate
+        # avoids spending a model request on clearly unrelated small talk.
+        aws_terms = (
+            'aws', '亚马逊云', 'ec2', '实例', 'ami', 'ebs', 'vpc', 'iam',
+            's3', 'lambda', 'cloudwatch', '云服务器', '安全组', '密钥对',
+            '弹性计算', '子网', '区域', '可用区', '按需实例', 'spot'
+        )
+        if not any(term in req.message.lower() for term in aws_terms):
+            answer = '我是 AWS 技术客服 Agent，主要回答 AWS、Amazon EC2 及相关云服务问题。请换一个 AWS 相关问题，我再帮你检索官方文档。'
+            save_message(session_id, 'assistant', answer, sources=[])
+            return {'session_id': session_id, 'answer': answer, 'sources': []}
         prompt = req.message
         if selected:
             source = {
