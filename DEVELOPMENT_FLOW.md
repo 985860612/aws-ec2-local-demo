@@ -246,3 +246,31 @@ curl -s https://aws.100c.fun/api/history
 - 自定义滚动条
 - Mac mini 服务运行
 
+
+## 13. 知识库阅读页面
+
+React 侧边栏的“知识库”打开文档阅读页，支持主题树、全文关键词搜索、
+Markdown 表格与代码、章节跳转、文档内链、官方原文和选定文档提问。
+目录和正文独立滚动；目录可收起，手机端默认收起。
+
+数据来自 `source_docs/ec2_user_guide/*.md`，层级来自同目录的
+`toc-contents.json`。目录数量从文件实际统计；不表示向量索引状态。
+目录在服务进程内缓存，更新文档后重启后端生效。文档插图使用原文的 AWS 图片链接。
+
+新增只读接口：
+
+- `GET /api/knowledge`：文档摘要与主题树。
+- `GET /api/knowledge/search?q=关键词`：标题、文件名、正文关键词搜索，最多返回 60 条。
+- `GET /api/knowledge/documents/{doc_id}`：正文和官方链接。
+
+浏览地址：`http://localhost:5173/?view=knowledge&doc=ec2-security-groups`。
+运行方式沿用前端 Vite 与后端 FastAPI；生产部署需要同时更新前后端文件，
+包括新增的 `knowledge_base.py`。无需重新生成向量索引。
+
+`POST /api/chat` 接受可选 `document_id`。服务端从受控目录加载参考正文，
+长文档按问题相关章节节选，并将选定文档加入引用来源。
+前端“基于此文提问”只选择上下文，不会自动发送问题。
+模型客户端与 Qdrant 在首次问答时初始化，因此仅浏览知识库无需模型凭证。
+
+验证：`python -m unittest discover -s tests -v`（在项目虚拟环境中运行），
+以及 `cd frontend && npm run build`。
