@@ -1,4 +1,8 @@
 import unittest
+import json
+import sqlite3
+import tempfile
+from pathlib import Path
 from unittest.mock import Mock, patch
 from types import SimpleNamespace
 from fastapi import FastAPI
@@ -63,6 +67,46 @@ class KnowledgeBaseTests(unittest.TestCase):
             self.assertEqual(create_agent.call_count, 1)
             self.assertEqual(client.post('/api/chat', json={
                 'message': 'test', 'document_id': '../web_demo.py'}).status_code, 404)
+
+    def test_production_app_registers_knowledge_routes(self):
+        import web_demo
+        client = TestClient(web_demo.app)
+        self.assertEqual(client.get('/api/knowledge').json()['total'], len(catalog()[0]))
+        self.assertEqual(client.get('/api/knowledge/documents/ec2-security-groups').status_code, 200)
+
+    def test_selected_document_and_search_keep_unique_stable_citations(self):
+        import web_demo
+        hit = SimpleNamespace(score=0.9, payload={
+            'id': 'search-chunk', 'title': '检索文档', 'text': '检索证据',
+            'source_file': 'source_docs/test.md', 'source_url': 'https://example.com/test.html'})
+        def answer(prompt):
+            session = web_demo.sessions['citation-test']
+            first = json.loads(session.search('安全组'))
+            second = json.loads(session.search('安全组'))
+            expected = 2 if 'selected_document' in prompt else 1
+            self.assertEqual(first['evidence'][0]['citation_number'], expected)
+            self.assertEqual(second['evidence'][0]['citation_number'], expected)
+            return f'证据 [{expected}](#source-{expected})'
+        with patch.object(web_demo, 'new_agent', return_value=Mock(side_effect=answer)), \
+             patch.object(web_demo, 'retrieve_aws_knowledge', return_value=[hit]), \
+             patch.object(web_demo, 'save_message'), patch.object(web_demo, 'sessions', {}):
+            client = TestClient(web_demo.app)
+            data = client.post('/api/chat', json={'session_id': 'citation-test',
+                'message': '解释', 'document_id': 'ec2-security-groups'}).json()
+            self.assertEqual([s['citation_number'] for s in data['sources']], [1, 2])
+            data = client.post('/api/chat', json={'session_id': 'citation-test', 'message': '继续'}).json()
+            self.assertEqual([s['citation_number'] for s in data['sources']], [1])
+
+    def test_history_migration_and_citation_round_trip(self):
+        import web_demo
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(web_demo, 'HISTORY_DB', Path(directory) / 'history.sqlite3'):
+            with sqlite3.connect(web_demo.HISTORY_DB) as connection:
+                connection.execute("CREATE TABLE messages (id INTEGER PRIMARY KEY AUTOINCREMENT, session_id TEXT, role TEXT, content TEXT, created_at TEXT)")
+            web_demo.init_history()
+            sources = [{'citation_number': 1, 'id': 'selected-doc', 'selected': True}]
+            web_demo.save_message('test', 'assistant', '回答 [1](#source-1)', sources=sources)
+            self.assertEqual(web_demo.get_history('test')[0]['sources'], sources)
 
     def test_selected_document_context_is_bounded_and_from_document(self):
         for doc_id in ['ec2-security-groups', 'DocumentHistory']:
