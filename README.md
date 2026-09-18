@@ -1,29 +1,122 @@
-# AWS EC2 本地向量化 Demo
+# AWS EC2 中文客服 Agent
 
-这个 demo 不调用 AWS、Bedrock 或云端向量数据库：首次运行会下载一个多语言 Embedding 模型，之后用本地模型把 5 条 EC2 知识向量化，并用余弦相似度检索。
+基于 AWS EC2 中文官方文档的 RAG 客服应用。本地保存官方文档、Qdrant 向量库和会话历史，使用 DashScope Qwen 云接口完成向量化和回答生成。
 
-```bash
-cd /Users/wangxiaojie/aws-ec2-local-demo
-uv run --with sentence-transformers --with numpy demo.py
+线上演示：[https://aws.100c.fun](https://aws.100c.fun)
+
+## 功能
+
+- AWS EC2 中文官方文档检索与阅读
+- 本地 Qdrant 语义检索
+- Qwen 云端问答和引用生成
+- Markdown 回答与官方文档引用卡片
+- 会话历史记录
+- 知识库目录、搜索和文档内问答
+- 非 AWS 问题意图限制
+- React 设置面板和响应式界面
+
+## 技术架构
+
+```text
+React + Vite
+      │ /api
+      ▼
+FastAPI + Strands Agents
+      ├── Qdrant（本地向量库）
+      ├── SQLite（本地历史记录）
+      └── DashScope
+          ├── qwen3.7-text-embedding-flash
+          └── qwen3.8-flash
 ```
 
-首次运行会下载模型（约数百 MB），模型缓存后可离线运行。生成的 `index.npz` 和 `metadata.json` 是本地索引。后续只需把 `DOCS` 替换为清洗后的 AWS 文档切片即可。
+生产环境由公网 Nginx 提供 HTTPS，通过 Tailscale 转发至 Mac mini：
 
-## Web Demo
-
-```bash
-uv run --with fastapi --with uvicorn --with sentence-transformers --with numpy \
-  uvicorn web_demo:app --host 127.0.0.1 --port 8000
+```text
+/       → 100.112.98.4:5173
+/api/   → 100.112.98.4:8000
 ```
 
-浏览器打开 http://127.0.0.1:8000
+## 目录结构
 
-## 获取 AWS EC2 中文文档
+```text
+frontend/                 React 前端
+web_demo.py               FastAPI 与 Agent 入口
+knowledge_base.py         文档目录、搜索和正文 API
+scripts/                  文档下载、切片和向量化脚本
+source_docs/              AWS EC2 中文官方文档
+data/qdrant/              Qdrant 本地数据
+data/history.sqlite3      会话历史
+deploy/                   Nginx 配置
+DEPLOYMENT.md             部署说明
+DEVELOPMENT_FLOW.md       开发流程
+AGENTS.md                 项目开发约定
+```
 
-AWS 文档页面提供对应的 Markdown 版本，因此直接下载 `.md` 比抓 HTML 更适合建知识库：
+## 环境要求
+
+- macOS 或 Linux
+- Python 3.10+
+- `uv`
+- Node.js 与 npm
+- DashScope API Key
+
+凭证 CSV 不进入仓库：
+
+```bash
+export DASHSCOPE_CREDENTIAL_FILE=/path/to/credentials.csv
+chmod 600 "$DASHSCOPE_CREDENTIAL_FILE"
+```
+
+## 本地运行
+
+启动后端：
+
+```bash
+./run_web.sh
+```
+
+启动前端：
+
+```bash
+npm --prefix frontend install
+npm --prefix frontend run dev
+```
+
+访问 `http://127.0.0.1:5173`，Vite 会将 `/api` 代理到 `127.0.0.1:8000`。
+
+生产构建：
+
+```bash
+npm --prefix frontend run build
+```
+
+## 获取并索引文档
 
 ```bash
 ./scripts/fetch_aws_ec2_docs.sh
+uv run scripts/build_chunks.py
+uv run --with openai --with qdrant-client python scripts/index_qdrant_dashscope.py
 ```
 
-原始文档保存到 `source_docs/raw/`，保留官方链接和 Markdown 格式，下一步可直接切片并写入 Qdrant。
+Qdrant 集合名称：`aws_ec2_zh_cn`。
+
+## 主要 API
+
+```text
+POST /api/chat
+GET  /api/history
+GET  /api/history/{session_id}
+GET  /api/knowledge
+GET  /api/knowledge/search?q=...
+GET  /api/knowledge/documents/{doc_id}
+```
+
+## 验证
+
+```bash
+uv run python -m py_compile web_demo.py knowledge_base.py
+npm --prefix frontend run build
+curl -fsS http://127.0.0.1:8000/api/knowledge
+```
+
+部署与故障排查参见 [DEPLOYMENT.md](DEPLOYMENT.md)，完整实现过程参见 [DEVELOPMENT_FLOW.md](DEVELOPMENT_FLOW.md)。
