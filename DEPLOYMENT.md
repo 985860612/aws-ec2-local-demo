@@ -64,7 +64,7 @@ chmod 600 /path/to/credentials.csv
 
 ## Nginx / HTTPS
 
-网关配置：`/etc/nginx/sites-available/aws.100c.fun`；上游：`http://100.112.98.4:8000`。
+网关配置：`/etc/nginx/sites-available/aws.100c.fun`。前后端已分流：React 静态构建由 Mac mini 的 `100.112.98.4:5173` 提供，`/api/` 转发到 FastAPI `100.112.98.4:8000`。
 
 证书：`/etc/letsencrypt/live/aws.100c.fun/fullchain.pem` 和 `privkey.pem`，Certbot 已配置自动续期。
 
@@ -75,6 +75,23 @@ nginx -t && nginx -s reload
 ```
 
 ## 更新部署
+
+前端构建：
+
+```bash
+cd frontend
+npm install
+npm run build
+```
+
+将 `frontend/dist` 同步到 Mac mini 后启动静态服务：
+
+```bash
+cd /Users/wangxiaojie/services/aws-agent
+nohup /usr/bin/python3 -m http.server 5173 --bind 0.0.0.0 \
+  --directory /Users/wangxiaojie/services/aws-agent/frontend/dist \
+  > frontend.log 2>&1 < /dev/null &
+```
 
 使用 `remote-dir-sync` 同步到 `/Users/wangxiaojie/services/aws-agent`，再重启：
 
