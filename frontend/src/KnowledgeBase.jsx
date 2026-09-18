@@ -84,7 +84,7 @@ export default function KnowledgeBase({docId, anchor, onNavigate, onAsk, onChat}
   const [query, setQuery] = useState(''), [results, setResults] = useState(null), [searchError, setSearchError] = useState('');
   const [searchOpen, setSearchOpen] = useState(false), [copied, setCopied] = useState(false), [retry, setRetry] = useState(0);
   const searchRef = useRef(null), articleRef = useRef(null);
-  const selected = docId || 'ec2-security-groups';
+  const selected = docId || 'concepts';
   const content = useMemo(() => prepareMarkdown(doc?.content || ''), [doc]);
   const group = catalog?.groups.find(g => g.id === doc?.group);
   const navigate = (id, fragment = '') => {setSearchOpen(false); if (window.innerWidth <= 680) setCollapsed(true); onNavigate(id, fragment);};
