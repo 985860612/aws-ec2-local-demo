@@ -4,3 +4,7 @@ __pycache__/
 
 # macOS
 .DS_Store
+
+# 前端依赖与构建产物（npm install / npm run build 可重建）
+node_modules/
+frontend/dist/
