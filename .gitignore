@@ -5,6 +5,10 @@ __pycache__/
 # macOS
 .DS_Store
 
+# 本地凭证与运行数据（禁止提交）
+/默认业务空间-apiKey-7312314.csv
+/data/history.sqlite3
+
 # 前端依赖与构建产物（npm install / npm run build 可重建）
 node_modules/
 frontend/dist/
