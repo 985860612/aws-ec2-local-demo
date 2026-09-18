@@ -373,8 +373,8 @@ function App() {
       <aside className="left">
         <div className="brand">KIRO</div>
         <div className="tag">Think AI-DLC. Build with Kiro.</div>
-        <button className={`nav ${page === 'chat' ? 'active' : ''}`} onClick={() => navigatePage('chat')}>▣　对话</button>
-        <button className={`nav ${page === 'knowledge' ? 'active' : ''}`} onClick={() => navigatePage('knowledge')}>♧　知识库</button>
+        <button className={`nav ${page === 'chat' ? 'active' : ''}`} aria-current={page === 'chat' ? 'page' : undefined} onClick={() => navigatePage('chat')}><span className="nav-icon" aria-hidden="true">▣</span><span>对话</span></button>
+        <button className={`nav ${page === 'knowledge' ? 'active' : ''}`} aria-current={page === 'knowledge' ? 'page' : undefined} onClick={() => navigatePage('knowledge')}><span className="nav-icon" aria-hidden="true">♧</span><span>知识库</span></button>
         <button
           ref={historyToggleRef}
           type="button"
@@ -384,7 +384,7 @@ function App() {
           title={showHistory ? '收起历史记录' : '展开历史记录'}
           onClick={() => setShowHistory((shown) => !shown)}
         >
-          <span>◷　历史记录</span>
+          <span className="nav-icon" aria-hidden="true">◷</span><span>历史记录</span>
           <svg className="history-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="m6 9 6 6 6-6" />
           </svg>
@@ -407,12 +407,13 @@ function App() {
             )}
           </div>
         )}
-        <div
+        <button
+          type="button"
           className={`nav ${showSettings ? 'selected' : ''}`}
           onClick={() => setShowSettings(!showSettings)}
         >
-          ⚙　设置
-        </div>
+          <span className="nav-icon" aria-hidden="true">⚙</span><span>设置</span>
+        </button>
         <div className="mascot">
           <img src="/assets/ai-dlc-mascot.png" alt="AI-DLC 先锋创造营" />
           <div className="brand-cn">AI-DLC 先锋创造营</div>
