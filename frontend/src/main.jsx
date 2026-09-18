@@ -7,6 +7,7 @@ import './markdown.css';
 import './markdown-overrides.css';
 import './scrollbar.css';
 import KnowledgeBase from './KnowledgeBase';
+import Settings from './Settings';
 
 const LOADING_STAGES = ['理解问题', '检索 AWS 知识库', '整理证据并生成回答'];
 const PROCESS_STEPS = [...LOADING_STAGES, '完成'];
@@ -38,7 +39,8 @@ const initialMessages = [
 function App() {
   const [location, setLocation] = useState(() => new URL(window.location.href));
   const [selectedDocument, setSelectedDocument] = useState(null);
-  const page = location.searchParams.get('view') === 'knowledge' ? 'knowledge' : 'chat';
+  const view = location.searchParams.get('view');
+  const page = ['knowledge', 'settings'].includes(view) ? view : 'chat';
   useEffect(() => {
     const update = () => setLocation(new URL(window.location.href));
     window.addEventListener('popstate', update);
@@ -63,7 +65,6 @@ function App() {
   const [highlightedCitation, setHighlightedCitation] = useState(null);
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingStage, setLoadingStage] = useState(0);
@@ -87,6 +88,8 @@ function App() {
   const chatEndRef = useRef(null);
   const historyToggleRef = useRef(null);
   const historyPanelRef = useRef(null);
+  const conversationVersionRef = useRef(0);
+  const composerRef = useRef(null);
 
   useEffect(() => {
     if (!showHistory) return;
@@ -144,7 +147,34 @@ function App() {
     );
   }
 
-  async function processItem(item) {
+  function startNewConversation() {
+    conversationVersionRef.current += 1;
+    queueRef.current = [];
+    drainingRef.current = false;
+    sidRef.current = null;
+    setSid(null);
+    setMessages(initialMessages);
+    setSources([]);
+    setHighlightedCitation(null);
+    setSelectedDocument(null);
+    setQ('');
+    setLoading(false);
+    setLoadingStage(0);
+    setProcessStatus('idle');
+    setActiveItem(null);
+    setQueuedItems([]);
+    setQueueExpanded(true);
+    setShowHistory(false);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('doc');
+    url.hash = '';
+    window.history.replaceState({}, '', url);
+    setLocation(url);
+    composerRef.current?.focus();
+    refreshHistory();
+  }
+
+  async function processItem(item, version) {
     const pendingId = `pending-${item.id}`;
     setActiveItem(item);
     setLoadingStage(0);
@@ -157,6 +187,7 @@ function App() {
     ]);
 
     const stageTimer = window.setInterval(() => {
+      if (version !== conversationVersionRef.current) return;
       setLoadingStage((stage) => Math.min(stage + 1, LOADING_STAGES.length - 1));
     }, 1400);
 
@@ -171,6 +202,8 @@ function App() {
         method: 'POST',
         body: JSON.stringify({ session_id: requestSid, message: item.text, document_id: item.documentId }),
       });
+      if (settingsRef.current.autoSave) refreshHistory();
+      if (version !== conversationVersionRef.current) return;
       const responseSid = data.session_id || requestSid;
       const responseSources = data.sources || [];
       sidRef.current = responseSid;
@@ -181,8 +214,8 @@ function App() {
       });
       setSources(responseSources);
       setProcessStatus('done');
-      if (settingsRef.current.autoSave) refreshHistory();
     } catch (error) {
+      if (version !== conversationVersionRef.current) return;
       replacePending(pendingId, {
         content: `请求失败：${error.message || '请检查服务或 API 配额。'}`,
         failed: true,
@@ -191,26 +224,29 @@ function App() {
       setProcessStatus('error');
     } finally {
       window.clearInterval(stageTimer);
-      setActiveItem(null);
+      if (version === conversationVersionRef.current) setActiveItem(null);
     }
   }
 
   async function drainQueue() {
     if (drainingRef.current) return;
     drainingRef.current = true;
+    const version = ++conversationVersionRef.current;
     setLoading(true);
 
     try {
-      while (queueRef.current.length > 0) {
+      while (version === conversationVersionRef.current && queueRef.current.length > 0) {
         const item = queueRef.current.shift();
         syncQueueView();
-        await processItem(item);
+        await processItem(item, version);
       }
     } finally {
-      drainingRef.current = false;
-      setActiveItem(null);
-      setLoading(false);
-      syncQueueView();
+      if (version === conversationVersionRef.current) {
+        drainingRef.current = false;
+        setActiveItem(null);
+        setLoading(false);
+        syncQueueView();
+      }
     }
   }
 
@@ -231,7 +267,14 @@ function App() {
       setQueueExpanded(true);
       return;
     }
-    const data = await api(`/api/history/${id}`);
+    const version = ++conversationVersionRef.current;
+    let data;
+    try {
+      data = await api(`/api/history/${id}`);
+    } catch {
+      return;
+    }
+    if (version !== conversationVersionRef.current || drainingRef.current) return;
     const restoredMessages = (data.messages || []).map((message, index) => ({
       ...message,
       sources: message.sources || [],
@@ -369,7 +412,7 @@ function App() {
   }
 
   return (
-    <div className={`app ${page === 'knowledge' ? 'knowledge-app' : ''}`}>
+    <div className={`app ${page !== 'chat' ? `${page}-app` : ''}`}>
       <aside className="left">
         <div className="brand">KIRO</div>
         <div className="tag">Think AI-DLC. Build with Kiro.</div>
@@ -409,8 +452,9 @@ function App() {
         )}
         <button
           type="button"
-          className={`nav ${showSettings ? 'selected' : ''}`}
-          onClick={() => setShowSettings(!showSettings)}
+          className={`nav ${page === 'settings' ? 'active' : ''}`}
+          aria-current={page === 'settings' ? 'page' : undefined}
+          onClick={() => navigatePage('settings')}
         >
           <span className="nav-icon" aria-hidden="true">⚙</span><span>设置</span>
         </button>
@@ -421,7 +465,9 @@ function App() {
         </div>
       </aside>
 
-      {page === 'knowledge' ? (
+      {page === 'settings' ? (
+        <Settings settings={settings} onChange={updateSettings} />
+      ) : page === 'knowledge' ? (
         <KnowledgeBase
           docId={location.searchParams.get('doc')}
           anchor={decodeURIComponent(location.hash.slice(1))}
@@ -435,11 +481,11 @@ function App() {
           <div className="avatar">▱</div>
           <div>
             <div className="title">AWS 客服 Agent</div>
-            <div className="status">
-              <i />已连接本地 Qdrant · Qwen 云模型
-            </div>
           </div>
-          <div className="badge">▣ 基于知识库回答</div>
+          <button type="button" className="new-chat" onClick={startNewConversation} title="开启独立的新对话">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            <span>新对话</span>
+          </button>
         </header>
 
         <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
@@ -552,6 +598,7 @@ function App() {
           )}
           <div className="composer">
             <textarea
+              ref={composerRef}
               value={q}
               onChange={(event) => setQ(event.target.value)}
               onKeyDown={(event) => {
@@ -645,74 +692,7 @@ function App() {
       </aside>
 
       </>}
-      {showSettings && (
-        <div className="settings-backdrop" onClick={() => setShowSettings(false)}>
-          <section className="settings-panel" onClick={(event) => event.stopPropagation()}>
-            <div className="settings-head">
-              <h2>设置</h2>
-              <button onClick={() => setShowSettings(false)}>×</button>
-            </div>
-            <h3>模型配置</h3>
-            <label>
-              问答模型
-              <input value="qwen3.8-flash" readOnly />
-            </label>
-            <label>
-              向量模型
-              <input value="qwen3.7-text-embedding-flash" readOnly />
-            </label>
-            <label>
-              检索 Top-K
-              <select
-                value={settings.topK}
-                onChange={(event) => updateSettings({ topK: Number(event.target.value) })}
-              >
-                <option value="3">3</option>
-                <option value="5">5</option>
-                <option value="8">8</option>
-                <option value="10">10</option>
-              </select>
-            </label>
-            <h3>对话偏好</h3>
-            <label className="switch-row">
-              显示引用来源
-              <input
-                type="checkbox"
-                checked={settings.showSources}
-                onChange={(event) => updateSettings({ showSources: event.target.checked })}
-              />
-            </label>
-            <label className="switch-row">
-              显示检索过程
-              <input
-                type="checkbox"
-                checked={settings.showProcess}
-                onChange={(event) => updateSettings({ showProcess: event.target.checked })}
-              />
-            </label>
-            <label className="switch-row">
-              自动保存历史
-              <input
-                type="checkbox"
-                checked={settings.autoSave}
-                onChange={(event) => updateSettings({ autoSave: event.target.checked })}
-              />
-            </label>
-            <h3>系统状态</h3>
-            <div className="status-card">
-              <p>
-                <i /> API 服务　正常
-              </p>
-              <p>
-                <i /> Qdrant 向量库　已连接
-              </p>
-              <p>
-                <i /> 知识库　AWS EC2 中文文档
-              </p>
-            </div>
-          </section>
-        </div>
-      )}
+
     </div>
   );
 }

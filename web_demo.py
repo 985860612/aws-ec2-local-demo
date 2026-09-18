@@ -406,7 +406,7 @@ HTML = HTML.replace(
 )
 HTML = HTML.replace(
     '</script>',
-    ''';async function loadHistory(){const p=document.querySelector('#historyPanel');p.classList.toggle('open');if(!p.classList.contains('open'))return;const d=await fetch('/api/history').then(r=>r.json());p.innerHTML=d.items.length?d.items.map(x=>`<div class="history-item" data-id="${x.session_id}">${x.title}</div>`).join(''):'<div class="history-item">暂无历史记录</div>';p.querySelectorAll('[data-id]').forEach(x=>x.onclick=()=>restoreHistory(x.dataset.id))}async function restoreHistory(id){const d=await fetch('/api/history/'+id).then(r=>r.json());sid=id;chat.innerHTML='';d.messages.forEach(m=>m.role==='user'?addUser(m.content):addAgent(m.content));document.querySelector('#historyPanel').classList.remove('open')}document.querySelector('#historyNav').onclick=loadHistory;</script>''',
+    ''';async function loadHistory(){const p=document.querySelector('#historyPanel');p.classList.toggle('open');if(!p.classList.contains('open'))return;const d=await fetch('/api/history').then(r=>r.json());p.innerHTML=d.items.length?d.items.map(x=>`<div class="history-item" data-id="${x.session_id}">${x.title}</div>`).join(''):'<div class="history-item">暂无历史记录</div>';p.querySelectorAll('[data-id]').forEach(x=>x.onclick=()=>restoreHistory(x.dataset.id))}async function restoreHistory(id){const version=++conversationVersion;const d=await fetch('/api/history/'+id).then(r=>r.json());if(version!==conversationVersion)return;sid=id;chat.innerHTML='';d.messages.forEach(m=>m.role==='user'?addUser(m.content):addAgent(m.content));document.querySelector('#historyPanel').classList.remove('open')}document.querySelector('#historyNav').onclick=loadHistory;</script>''',
     1,
 )
 
