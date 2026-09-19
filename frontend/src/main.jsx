@@ -13,6 +13,40 @@ const LOADING_STAGES = ['理解问题', '检索 AWS 知识库', '整理证据并
 const PROCESS_STEPS = [...LOADING_STAGES, '完成'];
 const makeId = () => crypto.randomUUID();
 const sourceNumber = (source, index) => source.citation_number || index + 1;
+const formatMessageTime = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+};
+const formatMessageDateTime = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).format(date);
+};
+
+const plainMessagePreview = (content, limit = 180) => {
+  const plain = String(content || '')
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/[`#>*_|~]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return plain.length > limit ? `${plain.slice(0, limit)}…` : plain;
+};
 
 const api = async (path, options) => {
   const response = await fetch(path, {
@@ -63,6 +97,9 @@ function App() {
   const [messages, setMessages] = useState(initialMessages);
   const [sources, setSources] = useState([]);
   const [highlightedCitation, setHighlightedCitation] = useState(null);
+  const [replyDraft, setReplyDraft] = useState(null);
+  const [contextMenu, setContextMenu] = useState(null);
+  const [highlightedMessageId, setHighlightedMessageId] = useState(null);
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [q, setQ] = useState('');
@@ -90,6 +127,9 @@ function App() {
   const historyPanelRef = useRef(null);
   const conversationVersionRef = useRef(0);
   const composerRef = useRef(null);
+  const contextMenuRef = useRef(null);
+  const messageNodesRef = useRef(new Map());
+  const highlightTimerRef = useRef(null);
 
   useEffect(() => {
     if (!showHistory) return;
@@ -106,6 +146,40 @@ function App() {
     document.addEventListener('click', closeHistoryOnOutsideClick, true);
     return () => document.removeEventListener('click', closeHistoryOnOutsideClick, true);
   }, [showHistory]);
+
+  useEffect(() => {
+    if (!contextMenu) return;
+
+    const closeOnPointer = (event) => {
+      if (!contextMenuRef.current?.contains(event.target)) setContextMenu(null);
+    };
+    const closeOnKey = (event) => {
+      if (event.key === 'Escape') setContextMenu(null);
+    };
+    const close = () => setContextMenu(null);
+    const focusTimer = window.requestAnimationFrame(() => {
+      contextMenuRef.current?.querySelector('[role="menuitem"]')?.focus();
+    });
+
+    document.addEventListener('pointerdown', closeOnPointer, true);
+    window.addEventListener('keydown', closeOnKey);
+    window.addEventListener('resize', close);
+    window.addEventListener('blur', close);
+    return () => {
+      window.cancelAnimationFrame(focusTimer);
+      document.removeEventListener('pointerdown', closeOnPointer, true);
+      window.removeEventListener('keydown', closeOnKey);
+      window.removeEventListener('resize', close);
+      window.removeEventListener('blur', close);
+    };
+  }, [contextMenu]);
+
+  useEffect(
+    () => () => {
+      if (highlightTimerRef.current) window.clearTimeout(highlightTimerRef.current);
+    },
+    [],
+  );
 
   useEffect(() => {
     sidRef.current = sid;
@@ -142,9 +216,62 @@ function App() {
   function replacePending(pendingId, replacement) {
     setMessages((current) =>
       current.map((message) =>
-        message.id === pendingId ? { id: pendingId, role: 'assistant', ...replacement } : message,
+        message.id === pendingId
+          ? { ...message, id: pendingId, role: 'assistant', ...replacement }
+          : message,
       ),
     );
+  }
+
+  function openReplyMenu(event, message) {
+    if (message.pending) return;
+    event.preventDefault();
+    const node = messageNodesRef.current.get(message.id);
+    const rect = node?.getBoundingClientRect();
+    const x = event.clientX || (rect ? rect.left + 24 : 24);
+    const y = event.clientY || (rect ? rect.top + 24 : 24);
+    const createdAt = message.created_at || message.createdAt || null;
+    setContextMenu({
+      x: Math.max(8, Math.min(x, window.innerWidth - 132)),
+      y: Math.max(8, Math.min(y, window.innerHeight - 58)),
+      target: {
+        message_id: message.id,
+        role: message.role,
+        content: String(message.content || '').slice(0, 4000),
+        created_at: createdAt,
+      },
+    });
+  }
+
+  function selectReplyTarget() {
+    if (!contextMenu?.target) return;
+    setReplyDraft({ ...contextMenu.target });
+    setContextMenu(null);
+    window.requestAnimationFrame(() => composerRef.current?.focus());
+  }
+
+  function locateReplyTarget(reply) {
+    let targetId = reply?.message_id;
+    let target = targetId ? messageNodesRef.current.get(targetId) : null;
+    if (!target) {
+      const matched = messages.find(
+        (message) =>
+          message.role === reply?.role &&
+          String(message.content || '').startsWith(String(reply?.content || '')),
+      );
+      targetId = matched?.id;
+      target = targetId ? messageNodesRef.current.get(targetId) : null;
+    }
+    if (!target || !targetId) return;
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    target.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center' });
+    setHighlightedMessageId(targetId);
+    if (highlightTimerRef.current) window.clearTimeout(highlightTimerRef.current);
+    highlightTimerRef.current = window.setTimeout(() => {
+      setHighlightedMessageId(null);
+      highlightTimerRef.current = null;
+    }, 1800);
   }
 
   function startNewConversation() {
@@ -156,6 +283,13 @@ function App() {
     setMessages(initialMessages);
     setSources([]);
     setHighlightedCitation(null);
+    setReplyDraft(null);
+    setContextMenu(null);
+    setHighlightedMessageId(null);
+    if (highlightTimerRef.current) {
+      window.clearTimeout(highlightTimerRef.current);
+      highlightTimerRef.current = null;
+    }
     setSelectedDocument(null);
     setQ('');
     setLoading(false);
@@ -175,15 +309,30 @@ function App() {
   }
 
   async function processItem(item, version) {
-    const pendingId = `pending-${item.id}`;
+    const userMessageId = `user-${item.id}`;
+    const pendingId = `assistant-${item.id}`;
+    const startedAt = new Date().toISOString();
     setActiveItem(item);
     setLoadingStage(0);
     setProcessStatus('loading');
     setHighlightedCitation(null);
     setMessages((current) => [
       ...current,
-      { id: `user-${item.id}`, role: 'user', content: item.text },
-      { id: pendingId, role: 'assistant', pending: true, content: '', sources: [] },
+      {
+        id: userMessageId,
+        role: 'user',
+        content: item.text,
+        createdAt: startedAt,
+        reply: item.reply,
+      },
+      {
+        id: pendingId,
+        role: 'assistant',
+        pending: true,
+        content: '',
+        sources: [],
+        createdAt: startedAt,
+      },
     ]);
 
     const stageTimer = window.setInterval(() => {
@@ -200,7 +349,14 @@ function App() {
 
       const data = await api('/api/chat', {
         method: 'POST',
-        body: JSON.stringify({ session_id: requestSid, message: item.text, document_id: item.documentId }),
+        body: JSON.stringify({
+          session_id: requestSid,
+          message: item.text,
+          document_id: item.documentId,
+          message_id: userMessageId,
+          assistant_message_id: pendingId,
+          reply: item.reply,
+        }),
       });
       if (settingsRef.current.autoSave) refreshHistory();
       if (version !== conversationVersionRef.current) return;
@@ -211,6 +367,7 @@ function App() {
       replacePending(pendingId, {
         content: data.answer || '未收到有效回答。',
         sources: responseSources,
+        createdAt: new Date().toISOString(),
       });
       setSources(responseSources);
       setProcessStatus('done');
@@ -220,6 +377,7 @@ function App() {
         content: `请求失败：${error.message || '请检查服务或 API 配额。'}`,
         failed: true,
         sources: [],
+        createdAt: new Date().toISOString(),
       });
       setProcessStatus('error');
     } finally {
@@ -254,10 +412,16 @@ function App() {
     const text = q.trim();
     if (!text) return;
 
-    const item = { id: makeId(), text, documentId: selectedDocument?.id || null };
+    const item = {
+      id: makeId(),
+      text,
+      documentId: selectedDocument?.id || null,
+      reply: replyDraft ? { ...replyDraft } : null,
+    };
     queueRef.current.push(item);
     syncQueueView();
     setQ('');
+    setReplyDraft(null);
     if (drainingRef.current) setQueueExpanded(true);
     void drainQueue();
   }
@@ -278,7 +442,8 @@ function App() {
     const restoredMessages = (data.messages || []).map((message, index) => ({
       ...message,
       sources: message.sources || [],
-      id: `history-${id}-${index}`,
+      reply: message.reply || null,
+      id: message.id || `history-${id}-${index}`,
     }));
     const latestSourcedAnswer = [...restoredMessages]
       .reverse()
@@ -289,6 +454,9 @@ function App() {
     setMessages(restoredMessages);
     setSources(latestSourcedAnswer?.sources || []);
     setHighlightedCitation(null);
+    setReplyDraft(null);
+    setContextMenu(null);
+    setHighlightedMessageId(null);
     setProcessStatus('idle');
     setShowHistory(false);
     setSelectedDocument(null);
@@ -308,7 +476,7 @@ function App() {
     return 'waiting';
   }
 
-  function activateCitation(message, citationNumber, shouldScroll = false) {
+  function activateCitation(message, citationNumber, occurrenceId, shouldScroll = false) {
     const messageSources = message.sources || [];
     const source = messageSources.find(
       (item, index) => sourceNumber(item, index) === citationNumber,
@@ -316,7 +484,7 @@ function App() {
     if (!source) return;
 
     setSources(messageSources);
-    setHighlightedCitation({ messageId: message.id, citationNumber });
+    setHighlightedCitation({ messageId: message.id, citationNumber, occurrenceId });
     if (shouldScroll) {
       window.requestAnimationFrame(() => {
         document
@@ -342,7 +510,7 @@ function App() {
           <table {...props} />
         </div>
       ),
-      a: ({ node: _node, href = '', children, ...props }) => {
+      a: ({ node, href = '', children, ...props }) => {
         const citationMatch = href.match(/^#source-(\d+)$/);
         if (!citationMatch) {
           const external = /^https?:\/\//.test(href);
@@ -363,15 +531,18 @@ function App() {
         const source = messageSources.find(
           (item, index) => sourceNumber(item, index) === citationNumber,
         );
-        const tooltipId = `citation-tooltip-${message.id}-${citationNumber}`;
+        const position = node?.position?.start;
+        const occurrenceId = `${message.id}-${citationNumber}-${position?.offset ?? `${position?.line || 0}-${position?.column || 0}`}`;
+        const tooltipId = `citation-tooltip-${occurrenceId}`;
         const isActive =
           highlightedCitation?.messageId === message.id &&
-          highlightedCitation?.citationNumber === citationNumber;
+          highlightedCitation?.citationNumber === citationNumber &&
+          highlightedCitation?.occurrenceId === occurrenceId;
 
         return (
           <span
             className={`citation-wrap${isActive ? ' active' : ''}${source ? '' : ' unavailable'}`}
-            onMouseEnter={() => activateCitation(message, citationNumber)}
+            onMouseEnter={() => activateCitation(message, citationNumber, occurrenceId)}
             onMouseLeave={clearCitation}
           >
             <a
@@ -384,11 +555,11 @@ function App() {
                   : `引用 ${citationNumber}：来源详情不可用`
               }
               aria-describedby={tooltipId}
-              onFocus={() => activateCitation(message, citationNumber)}
+              onFocus={() => activateCitation(message, citationNumber, occurrenceId)}
               onBlur={clearCitation}
               onClick={(event) => {
                 event.preventDefault();
-                activateCitation(message, citationNumber, true);
+                activateCitation(message, citationNumber, occurrenceId, true);
               }}
               onKeyDown={(event) => {
                 if (event.key === 'Escape') {
@@ -478,7 +649,9 @@ function App() {
       ) : <>
       <main className="main">
         <header className="top">
-          <div className="avatar">▱</div>
+          <div className="avatar">
+            <img src="/assets/ai-dlc-mascot.png" alt="AWS 客服 Agent" />
+          </div>
           <div>
             <div className="title">AWS 客服 Agent</div>
           </div>
@@ -499,58 +672,120 @@ function App() {
                   ? '当前消息处理失败，后续排队消息将继续处理'
                   : '对话已就绪'}
         </div>
-        <section className="chat">
-          {messages.map((message, index) => (
-            <div
-              className={message.role === 'user' ? 'user' : 'agent'}
-              key={message.id || `${message.role}-${index}`}
-            >
-              {message.role === 'assistant' && <div className="bot">🧙</div>}
+        <section className="chat" onScroll={() => setContextMenu(null)}>
+          {messages.map((message, index) => {
+            const timestamp = message.created_at || message.createdAt;
+            const displayTime = formatMessageTime(timestamp);
+            return (
               <div
-                className={`bubble${message.pending ? ' pending' : ''}${message.failed ? ' failed' : ''}`}
-                role={message.pending ? 'status' : undefined}
-                aria-live={message.pending ? 'polite' : undefined}
+                id={`message-${message.id}`}
+                className={`${message.role === 'user' ? 'user' : 'agent'}${highlightedMessageId === message.id ? ' reply-target-highlight' : ''}`}
+                key={message.id || `${message.role}-${index}`}
+                ref={(node) => {
+                  if (node) messageNodesRef.current.set(message.id, node);
+                  else messageNodesRef.current.delete(message.id);
+                }}
+                tabIndex={message.pending ? undefined : 0}
+                onContextMenu={(event) => openReplyMenu(event, message)}
+                onKeyDown={(event) => {
+                  if (!message.pending && (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10'))) {
+                    openReplyMenu(event, message);
+                  }
+                }}
               >
-                {message.pending ? (
-                  <div className="loading-process">
-                    <div className="loading-title">
-                      <span className="loading-spinner" />
-                      {LOADING_STAGES[loadingStage]}…
-                    </div>
-                    <div className="loading-stages">
-                      {LOADING_STAGES.map((stage, stageIndex) => (
-                        <span
-                          className={
-                            stageIndex < loadingStage
-                              ? 'done'
-                              : stageIndex === loadingStage
-                                ? 'active'
-                                : ''
-                          }
-                          key={stage}
-                        >
-                          {stageIndex < loadingStage ? '✓' : stageIndex + 1}
-                        </span>
-                      ))}
-                    </div>
+                {message.role === 'assistant' && (
+                  <div className="bot">
+                    <img src="/assets/ai-dlc-mascot.png" alt="AWS 客服 Agent" />
                   </div>
-                ) : message.role === 'assistant' ? (
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={markdownComponents(message)}
-                  >
-                    {message.content}
-                  </ReactMarkdown>
-                ) : (
-                  message.content
                 )}
+                <div className="message-body">
+                  {displayTime && (
+                    <time
+                      className="message-time"
+                      dateTime={timestamp}
+                      title={formatMessageDateTime(timestamp)}
+                    >
+                      {displayTime}
+                    </time>
+                  )}
+                  <div
+                    className={`bubble${message.pending ? ' pending' : ''}${message.failed ? ' failed' : ''}`}
+                    role={message.pending ? 'status' : undefined}
+                    aria-live={message.pending ? 'polite' : undefined}
+                  >
+                    {message.pending ? (
+                      <div className="loading-process">
+                        <div className="loading-title">
+                          <span className="loading-spinner" />
+                          {LOADING_STAGES[loadingStage]}…
+                        </div>
+                        <div className="loading-stages">
+                          {LOADING_STAGES.map((stage, stageIndex) => (
+                            <span
+                              className={
+                                stageIndex < loadingStage
+                                  ? 'done'
+                                  : stageIndex === loadingStage
+                                    ? 'active'
+                                    : ''
+                              }
+                              key={stage}
+                            >
+                              {stageIndex < loadingStage ? '✓' : stageIndex + 1}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : message.role === 'assistant' ? (
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={markdownComponents(message)}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
+                    ) : (
+                      <>
+                        <div className="user-message-text">{message.content}</div>
+                        {message.reply && (
+                          <button
+                            type="button"
+                            className="reply-preview"
+                            onClick={() => locateReplyTarget(message.reply)}
+                            title="点击定位到被引用消息"
+                          >
+                            <span>
+                              引用{message.reply.role === 'assistant' ? '客服回答' : '用户问题'}
+                            </span>
+                            <small>{plainMessagePreview(message.reply.content)}</small>
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           <div ref={chatEndRef} />
         </section>
 
         <div className="composer-zone">
+          {replyDraft && (
+            <div className="reply-draft">
+              <div>
+                <span>引用{replyDraft.role === 'assistant' ? '客服回答' : '用户问题'}</span>
+                <p>{plainMessagePreview(replyDraft.content, 220)}</p>
+              </div>
+              <button
+                type="button"
+                aria-label="取消引用"
+                title="取消引用"
+                onClick={() => setReplyDraft(null)}
+              >
+                ×
+              </button>
+            </div>
+          )}
           {selectedDocument && <div className="chat-document-context">
             <span>基于文档：{selectedDocument.title}</span>
             <button onClick={() => navigatePage('knowledge', selectedDocument.id)}>查看</button>
@@ -692,6 +927,21 @@ function App() {
       </aside>
 
       </>}
+
+      {contextMenu && (
+        <div
+          ref={contextMenuRef}
+          className="message-context-menu"
+          role="menu"
+          aria-label="消息操作"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+        >
+          <button type="button" role="menuitem" onClick={selectReplyTarget}>
+            <span aria-hidden="true">↩</span>
+            引用
+          </button>
+        </div>
+      )}
 
     </div>
   );
